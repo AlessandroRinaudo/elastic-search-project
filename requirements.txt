@@ -1,4 +1,5 @@
 fastapi 
 PyPDF2 
-python-multipart 
+python-multipart
+elasticsearch
 uvicorn[standard]
