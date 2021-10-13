@@ -17,7 +17,7 @@ services:
     ports:
       - 9200:9200
     networks:
-      - ney
+      - net
 
   kibana:
     container_name: kb-container
