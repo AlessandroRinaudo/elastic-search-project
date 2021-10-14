@@ -18,8 +18,10 @@ async def upload_file(file: bytes = File(...)):
     response = es.index(
         index = 'cv_search',
         doc_type = 'cv',
-        id = uuid.uuid(),
+        id = uuid.uuid4(),
         body = {
             "info" : resume
         }
     )
+
+    return response
