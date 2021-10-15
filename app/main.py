@@ -2,12 +2,14 @@ from fastapi import FastAPI, File
 from PyPDF2 import PdfFileReader
 from io import BufferedReader, BytesIO
 from elasticsearch import Elasticsearch
+from typing import Optional
+
 import uuid
 
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
-@app.post("/")
+@app.post("/upload_pdf")
 async def upload_file(file: bytes = File(...)):
     sample_bytes = BytesIO(file)
     fFileObj = BufferedReader(sample_bytes)
@@ -23,5 +25,13 @@ async def upload_file(file: bytes = File(...)):
             "info" : resume
         }
     )
-
     return response
+
+@app.get("/search_cv")
+def read_item(q: Optional[str] = None):
+    if q:
+        logs = es.search(index="cv_search", query={"match": {"info": q}})   
+    else:
+        logs = es.search(index="cv_search", query={"match_all": {}})
+
+    return logs['hits']['hits']
