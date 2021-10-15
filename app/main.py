@@ -1,32 +1,36 @@
-from fastapi import FastAPI, File, HTTPException
-from PyPDF2 import PdfFileReader
-from io import BufferedReader, BytesIO
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, ConnectionError
 from typing import Optional
 
 import uuid
+import textract
+import time
+import os
 
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
 @app.post("/upload_pdf")
-async def upload_file(file: bytes = File(...)):
-    sample_bytes = BytesIO(file)
-    fFileObj = BufferedReader(sample_bytes)
-    pdfReader = PdfFileReader(fFileObj)
-    pageObj = pdfReader.getPage(0)
-    resume = pageObj.extractText()
+async def upload_file(file: UploadFile = File(...)):
+    path = os.getcwd()+"/app/tmp/" + str(int(time.time())) + ".pdf"
+
+    with open(path, "wb") as cv:
+        cv.write(file.file.read())
+        text = textract.process(path).decode("utf-8")
+    os.remove(path)
+
     try:
         response = es.index(
             index = 'cv_search',
             doc_type = 'cv',
             id = uuid.uuid4(),
             body = {
-                "info" : resume
+                "info" : text
             }
         )
         return response
+
     except ConnectionError:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 

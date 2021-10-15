@@ -7,6 +7,8 @@ services:
       - 80:80
     networks:
       - net
+    volumes:
+      - ./app/tmp:/code/app/tmp
 
   elasticsearch:
     container_name: es-container
