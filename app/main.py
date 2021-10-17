@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, ConnectionError
 from typing import Optional
+from typing import List
 
 import uuid
 import textract
@@ -11,34 +12,48 @@ import os
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
+
 @app.post("/upload_pdf")
-async def upload_file(file: UploadFile = File(...)):
-    path = os.getcwd()+"/app/tmp/" + str(int(time.time())) + ".pdf"
+async def upload_file(files: List[UploadFile] = File(...)):
+    idFile = 0
+    responseDict = dict()
 
-    with open(path, "wb") as cv:
-        cv.write(file.file.read())
-        text = textract.process(path).decode("utf-8")
-    os.remove(path)
+    for file in files:
+        path = os.getcwd()+"/app/tmp/"+str(int(time.time()))+str(idFile)+".pdf"
 
-    try:
-        response = es.index(
-            index = 'cv_search',
-            doc_type = 'cv',
-            id = uuid.uuid4(),
-            body = {
-                "info" : text
-            }
-        )
-        return response
+        with open(path, "wb") as cv:
+            cv.write(file.file.read())
+            text = textract.process(path).decode("utf-8")
+        os.remove(path)
 
-    except ConnectionError:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        try:
+            response = es.index(
+                index='cv_search',
+                doc_type='cv',
+                id=uuid.uuid4(),
+                body={
+                    "info": text
+                }
+            )
+            responseDict[idFile] = response
+
+        except ConnectionError:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error")
+            continue
+        idFile += 1
+
+    if responseDict:
+        return responseDict
+    else:
+        return []
+
 
 @app.get("/search_cv")
 def read_item(q: Optional[str] = None):
-    try: 
+    try:
         if q:
-            logs = es.search(index="cv_search", query={"match": {"info": q}})   
+            logs = es.search(index="cv_search", query={"match": {"info": q}})
         else:
             logs = es.search(index="cv_search", query={"match_all": {}})
         return logs['hits']['hits']
