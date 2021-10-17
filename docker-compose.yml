@@ -10,16 +10,18 @@ services:
     volumes:
       - ./app/tmp:/code/app/tmp
 
-  elasticsearch:
-    container_name: es-container
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    environment:
-      - xpack.security.enabled=false
-      - "discovery.type=single-node"
-    ports:
-      - 9200:9200
+  logstash:
+    container_name: logs-container
+    image: logstash:7.14.2
+    volumes:
+      - ./logstash:/usr/share/logstash/pipeline/
+    command: logstash -f /usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
     networks:
       - net
+    ports:
+      - "12201:12201/udp"
 
   kibana:
     container_name: kb-container
@@ -30,6 +32,17 @@ services:
       - elasticsearch
     ports:
       - 5601:5601
+    networks:
+      - net
+
+  elasticsearch:
+    container_name: es-container
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    ports:
+      - 9200:9200
     networks:
       - net
 
