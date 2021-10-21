@@ -9,6 +9,8 @@ import textract
 import time
 import os
 
+from app.objects.CVObject import CVObject as cvo
+
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
@@ -20,22 +22,21 @@ async def upload_file(files: List[UploadFile] = File(...)):
 
     for file in files:
         path = os.getcwd()+"/app/tmp/"+str(int(time.time()))+str(idFile)+".pdf"
-
+        currentCV = cvo(info="", id=uuid.uuid4())
         with open(path, "wb") as cv:
             cv.write(file.file.read())
-            text = textract.process(path).decode("utf-8")
+            currentCV.info = textract.process(path).decode("utf-8")
+
         os.remove(path)
 
         try:
             response = es.index(
-                index='cv_search',
-                doc_type='cv',
-                id=uuid.uuid4(),
-                body={
-                    "info": text
-                }
+                index=currentCV.index,
+                doc_type=currentCV.doc_type,
+                id=currentCV.id,
+                body=currentCV.getBody()
             )
-            responseDict[idFile] = response
+            responseDict[currentCV.id] = response
 
         except ConnectionError:
             raise HTTPException(
