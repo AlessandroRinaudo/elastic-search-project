@@ -51,13 +51,18 @@ async def upload_file(files: List[UploadFile] = File(...)):
 
 
 @app.get("/search_cv")
-def read_item(q: Optional[str] = None):
+def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
+    # _source_excludes
+    srouceExcluseList = ""
+    if contactInfoOnly:
+        srouceExcluseList = "info"
     try:
         if q:
-            logs = es.search(index="cv_search", query={"match": {"info": q}})
+            logs = es.search(index="cv_search", query={"match": {"info": q}}, _source_excludes = srouceExcluseList)
         else:
-            logs = es.search(index="cv_search", query={"match_all": {}})
+            logs = es.search(index="cv_search", query={"match_all": {}}, _source_excludes = srouceExcluseList)
         return logs['hits']['hits']
+
     except NotFoundError:
         return []
     except ConnectionError:
