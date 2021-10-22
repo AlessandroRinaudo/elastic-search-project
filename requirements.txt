@@ -3,3 +3,4 @@ python-multipart
 elasticsearch
 uvicorn[standard]
 textract
+python-logstash

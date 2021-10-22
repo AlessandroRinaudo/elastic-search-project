@@ -21,7 +21,7 @@ services:
     networks:
       - net
     ports:
-      - "12201:12201/udp"
+      - "5959:5959"
 
   kibana:
     container_name: kb-container
