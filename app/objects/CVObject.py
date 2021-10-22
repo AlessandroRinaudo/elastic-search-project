@@ -38,7 +38,7 @@ class CVObject():
             self.phoneNumber = phonenumbers[0]
 
     def extractMails(self):
-        emails = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", self.info)
+        emails = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", self.info)
 
         if len(emails) == 1:
             self.emailAdress = emails[0]
