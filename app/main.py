@@ -33,16 +33,16 @@ async def upload_pdf_file(files: List[UploadFile] = File(...)):
 
     for file in files:
         try:
-          path = tmp_path+str(int(time.time()))+str(idFile)+".pdf"
+            path = tmp_path+str(int(time.time()))+str(idFile)+".pdf"
         except:
-          path = tmp_path+str(int(time.time()))+str(idFile)+".docx"
-        currentCV = cvo(info="", id=uuid.uuid4())
+            path = tmp_path+str(int(time.time()))+str(idFile)+".docx"
+        currentCV = cvo()
         with open(path, "wb") as cv:
             cv.write(file.file.read())
             try :
-              currentCV.info = textract.process(path).decode("utf-8")
+                currentCV.initCvWithInfo(textract.process(path).decode("utf-8"))
             except:
-              currentCV.info = process(path)
+                currentCV.initCvWithInfo(process(path))
 
         os.remove(path)
 
@@ -89,5 +89,5 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
     except ConnectionError:
         # Senf log to Logstash
         test_logger.error('Tried to reach "/search_cv", status : 500 - Internal Server Error')
-        
+
         raise HTTPException(status_code=500, detail="Internal Server Error")
