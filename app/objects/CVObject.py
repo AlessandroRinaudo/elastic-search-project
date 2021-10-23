@@ -1,21 +1,25 @@
 import re
-
+import uuid
 
 class CVObject():
 
-    def __init__(self, info, id):
+    def __init__(self):
         # CONSTANT
         self.index = "cv_search"
         self.doc_type = 'cv'
 
         # META INFO
-        self.id = id
-        self.info = info
+        self.id = ""
+        self.info = ""
 
         # MINED DATA
         self.emailAdress = ""
         self.phoneNumber = ""
         self.variousURL = ""
+
+    def initCvWithInfo(self, info: str = ""):
+        self.info = info
+        self.id = uuid.uuid5(uuid.NAMESPACE_DNS, info)
 
     def completeCV(self):
         if not self.emailAdress:
@@ -48,7 +52,7 @@ class CVObject():
         regexSpecialCase = r"\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}[-.\s]?\d{1,9}[-.\s]?\d{1,9}"
         phonenumbers = re.findall(regexGeneralCase, self.info)
         if len(phonenumbers) > 0:
-            self.phoneNumber = phonenumbers[0]
+            self.phoneNumber = phonenumbers[0].split("\n")[0]
         else:
             tokenLines = self.info.split("\n")
             for line in tokenLines:
@@ -64,7 +68,6 @@ class CVObject():
         if len(emails) == 1:
             self.emailAdress = emails[0]
         elif len(emails) > 1:
-            print("cas cool")
             for adr in emails:
                 adrprefix = adr.split("@")[0]
                 if '.' in adrprefix:

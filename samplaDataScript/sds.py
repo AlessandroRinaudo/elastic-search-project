@@ -19,12 +19,12 @@ for child in Path(os.getcwd()+'/data').iterdir():
 
     if len(files) > 100:
         response = r.post(
-                    'http://localhost/upload_pdf', files=files)
+                    'http://localhost/upload_cv', files=files)
         print(response.text)
         del(files)
         files = []
     print(files)
 
 response = r.post(
-            'http://localhost/upload_pdf', files=files)
+            'http://localhost/upload_cv', files=files)
 print(response.text)
