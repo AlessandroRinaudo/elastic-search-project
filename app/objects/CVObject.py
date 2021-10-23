@@ -33,9 +33,19 @@ class CVObject():
         return res
 
     def extractPhoneNumbers(self):
-        phonenumbers = re.findall(r"\(?\b[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}\b", self.info)
+        regexGeneralCase = r"\++\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        regexSpecialCase = r"\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        phonenumbers = re.findall(regexGeneralCase, self.info)
         if len(phonenumbers) > 0:
             self.phoneNumber = phonenumbers[0]
+        else:
+            tokenLines = self.info.split("\n")
+            for line in tokenLines:
+                if "phone" in line.lower():
+                    phonenumbers = re.findall(regexSpecialCase, self.info)
+                    if len(phonenumbers) > 0:
+                        self.phoneNumber = phonenumbers[0]
+                        break
 
     def extractMails(self):
         emails = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", self.info)
@@ -43,6 +53,7 @@ class CVObject():
         if len(emails) == 1:
             self.emailAdress = emails[0]
         elif len(emails) > 1:
+            print("cas cool")
             for adr in emails:
                 adrprefix = adr.split("@")[0]
                 if '.' in adrprefix:
