@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, ConnectionError
+from app.objects.CVObject import CVObject as cvo
 from typing import Optional
 from typing import List
 import os
