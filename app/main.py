@@ -19,6 +19,7 @@ host = 'logs-container'
 test_logger = logging.getLogger('python-logstash-logger')
 test_logger.setLevel(logging.INFO)
 test_logger.addHandler(logstash.LogstashHandler(host, 5959, version=1))
+tmp_path=os.getcwd()+"/app/tmp/"
 
 # Et puis la je fait genre qu'il y a des choses a dire
 extra = {
@@ -50,7 +51,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
     responseDict = dict()
 
     for file in files:
-        path = os.getcwd()+"/app/tmp/"+str(int(time.time()))+str(idFile)+".pdf"
+        path = tmp_path+str(int(time.time()))+str(idFile)+".pdf"
 
         with open(path, "wb") as cv:
             cv.write(file.file.read())
@@ -95,33 +96,36 @@ def read_item(q: Optional[str] = None):
 
 
 @app.post("/upload_word")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(files: List[UploadFile] = File(...)):
+    idFile = 0
     responseDict = dict()
-    doc = file.filename
-    doc = doc[:-5]
-    file_path = os.getcwd()+"/app/tmp/"
-    path = file_path+doc+'.docx'
-    with open(path, "wb") as cv:
-        cv.write(file.file.read())
-    text = process(path)
-    os.remove(path)
-    try:
-        response = es.index(
-            index='cv_search',
-            doc_type='cv',
-            id=uuid.uuid4(),
-            body={
-                "info": text
-            }
-        )
-        responseDict = response
 
-    except ConnectionError:
-        raise HTTPException(
-            status_code=500, detail="Internal Server Error")
+    for file in files:
+        path = tmp_path+str(int(time.time()))+str(idFile)+".docx"
+
+        with open(path, "wb") as cv:
+            cv.write(file.file.read())
+            text = process(path)
+        os.remove(path)
+
+        try:
+            response = es.index(
+                index='cv_search',
+                doc_type='cv',
+                id=uuid.uuid4(),
+                body={
+                    "info": text
+                }
+            )
+            responseDict[idFile] = response
+
+        except ConnectionError:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error")
+            continue
+        idFile += 1
 
     if responseDict:
-      return responseDict
+        return responseDict
     else:
-      return []
-
+        return []
