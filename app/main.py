@@ -91,5 +91,3 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
         test_logger.error('Tried to reach "/search_cv", status : 500 - Internal Server Error')
         
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-
