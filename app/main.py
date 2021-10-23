@@ -86,7 +86,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
 @app.get("/search_cv")
 def read_item(q: Optional[str] = None):
     try:
-        test_logger.info('Search executed : ' + q)
+        test_logger.info('Search executed : ' + str(q))
         if q:
             logs = es.search(index="cv_search", query={"match": {"info": q}})
         else:
