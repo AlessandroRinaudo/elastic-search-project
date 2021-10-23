@@ -112,6 +112,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
 
         with open(path, "wb") as cv:
             cv.write(file.file.read())
+            # word file transformation to string
             text = process(path)
         os.remove(path)
 
@@ -126,7 +127,14 @@ async def upload_file(files: List[UploadFile] = File(...)):
             )
             responseDict[idFile] = response
 
+            # Send log to Logstash
+            test_logger.info('CV uploaded successfully', extra={"file_name": file.filename})
+
         except ConnectionError:
+
+            # Send log to Logstash
+            test_logger.error('Tried to reach "/upload", status : 500 - Internal Server Error')
+
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
         idFile += 1
