@@ -19,6 +19,9 @@ docs_build
 venv
 docs.zip
 archive.zip
+.DS_Store
+*.pdf
+*.docx
 
 # vim temporary files
 *~

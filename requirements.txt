@@ -4,3 +4,5 @@ elasticsearch
 uvicorn[standard]
 textract
 python-logstash
+python-docx
+docx2txt

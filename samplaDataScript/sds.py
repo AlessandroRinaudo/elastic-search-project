@@ -23,6 +23,7 @@ for child in Path(os.getcwd()+'/data').iterdir():
         print(response.text)
         del(files)
         files = []
+    print(files)
 
 response = r.post(
             'http://localhost/upload_pdf', files=files)
