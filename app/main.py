@@ -72,7 +72,6 @@ async def upload_file(files: List[UploadFile] = File(...)):
         except ConnectionError:
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
-            continue
         idFile += 1
 
     if responseDict:
@@ -122,7 +121,6 @@ async def upload_file(files: List[UploadFile] = File(...)):
         except ConnectionError:
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
-            continue
         idFile += 1
 
     if responseDict:
