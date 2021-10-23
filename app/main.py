@@ -14,37 +14,33 @@ import logging
 import logstash
 import sys
 
-# Bah je fait des choses qui va faire le viens en faite
+# Logstash initialization
 host = 'logs-container'
 test_logger = logging.getLogger('python-logstash-logger')
 test_logger.setLevel(logging.INFO)
 test_logger.addHandler(logstash.LogstashHandler(host, 5959, version=1))
 tmp_path=os.getcwd()+"/app/tmp/"
 
-# Et puis la je fait genre qu'il y a des choses a dire
-extra = {
-    'test_string': 'python version: ' + repr(sys.version_info),
-    'test_boolean': True,
-    'test_dict': {'a': 1, 'b': 'c'},
-    'test_float': 1.23,
-    'test_integer': 123,
-    'test_list': [1, 2, '3'],
-}
-from app.objects.CVObject import CVObject as cvo
-
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
+#  extra = {
+#     'test_string': 'python version: ' + repr(sys.version_info),
+#     'test_boolean': True,
+#     'test_dict': {'a': 1, 'b': 'c'},
+#     'test_float': 1.23,
+#     'test_integer': 123,
+#     'test_list': [1, 2, 3]
+# }
 
-@app.get("/")
-async def test():
-    # et la je genere des logs en fait non ?
-    test_logger.error('python-logstash: test logstash error message.')
-    test_logger.info('python-logstash: test logstash info message.')
-    test_logger.warning('python-logstash: test logstash warning message.')
-    test_logger.info('python-logstash: test extra fields', extra=extra)
-    return {"test": 1}
-
+#  @app.get("/")
+# async def test():
+#     et la je genere des logs en fait non ?
+#     test_logger.error('python-logstash: test logstash error message.')
+#     test_logger.info('python-logstash: test logstash info message.')
+#     test_logger.warning('python-logstash: test logstash warning message.')
+#     test_logger.info('python-logstash: test extra fields', extra=extra)
+#     return { "test": 1} 
 
 @app.post("/upload_pdf")
 async def upload_file(files: List[UploadFile] = File(...)):
@@ -69,7 +65,14 @@ async def upload_file(files: List[UploadFile] = File(...)):
             )
             responseDict[currentCV.id] = response
 
+            # Send log to Logstash
+            test_logger.info('CV uploaded successfully', extra={"file_name": file.filename})
+
         except ConnectionError:
+
+            # Send log to Logstash
+            test_logger.error('Tried to reach "/upload", status : 500 - Internal Server Error')
+
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
         idFile += 1
@@ -87,6 +90,7 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
     if contactInfoOnly:
         srouceExcluseList = "info"
     try:
+        test_logger.info('Search executed : ' + str(q))
         if q:
             logs = es.search(index="cv_search", query={"match": {"info": q}}, _source_excludes = srouceExcluseList)
         else:
@@ -96,6 +100,9 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
     except NotFoundError:
         return []
     except ConnectionError:
+        # Senf log to Logstash
+        test_logger.error('Tried to reach "/search_cv", status : 500 - Internal Server Error')
+        
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
