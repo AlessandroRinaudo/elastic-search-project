@@ -47,7 +47,7 @@ async def test():
 
 
 @app.post("/upload_pdf")
-async def upload_file(files: List[UploadFile] = File(...)):
+async def upload_pdf_file(files: List[UploadFile] = File(...)):
     idFile = 0
     responseDict = dict()
 
@@ -100,7 +100,7 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
 
 
 @app.post("/upload_word")
-async def upload_file(files: List[UploadFile] = File(...)):
+async def upload_word_file(files: List[UploadFile] = File(...)):
     idFile = 0
     responseDict = dict()
 
