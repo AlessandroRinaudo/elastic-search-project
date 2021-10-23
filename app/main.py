@@ -30,6 +30,7 @@ extra = {
     'test_integer': 123,
     'test_list': [1, 2, '3'],
 }
+from app.objects.CVObject import CVObject as cvo
 
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
@@ -52,27 +53,25 @@ async def upload_file(files: List[UploadFile] = File(...)):
 
     for file in files:
         path = tmp_path+str(int(time.time()))+str(idFile)+".pdf"
-
+        currentCV = cvo(info="", id=uuid.uuid4())
         with open(path, "wb") as cv:
             cv.write(file.file.read())
-            text = textract.process(path).decode("utf-8")
+            currentCV.info = textract.process(path).decode("utf-8")
+
         os.remove(path)
 
         try:
             response = es.index(
-                index='cv_search',
-                doc_type='cv',
-                id=uuid.uuid4(),
-                body={
-                    "info": text
-                }
+                index=currentCV.index,
+                doc_type=currentCV.doc_type,
+                id=currentCV.id,
+                body=currentCV.getBody()
             )
-            responseDict[idFile] = response
+            responseDict[currentCV.id] = response
 
         except ConnectionError:
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
-            continue
         idFile += 1
 
     if responseDict:
@@ -82,13 +81,18 @@ async def upload_file(files: List[UploadFile] = File(...)):
 
 
 @app.get("/search_cv")
-def read_item(q: Optional[str] = None):
+def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
+    # _source_excludes
+    srouceExcluseList = ""
+    if contactInfoOnly:
+        srouceExcluseList = "info"
     try:
         if q:
-            logs = es.search(index="cv_search", query={"match": {"info": q}})
+            logs = es.search(index="cv_search", query={"match": {"info": q}}, _source_excludes = srouceExcluseList)
         else:
-            logs = es.search(index="cv_search", query={"match_all": {}})
+            logs = es.search(index="cv_search", query={"match_all": {}}, _source_excludes = srouceExcluseList)
         return logs['hits']['hits']
+
     except NotFoundError:
         return []
     except ConnectionError:
@@ -122,7 +126,6 @@ async def upload_file(files: List[UploadFile] = File(...)):
         except ConnectionError:
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
-            continue
         idFile += 1
 
     if responseDict:
