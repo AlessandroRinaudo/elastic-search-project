@@ -3,13 +3,8 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, ConnectionError
 from typing import Optional
 from typing import List
-# import sys
 import os
-# import docx
-# from docx2pdf import convert
 from docx2txt import process
-from docx import Document
-
 import uuid
 import textract
 import time
@@ -101,6 +96,7 @@ def read_item(q: Optional[str] = None):
 
 @app.post("/upload_word")
 async def upload_file(file: UploadFile = File(...)):
+    responseDict = dict()
     doc = file.filename
     doc = doc[:-5]
     file_path = os.getcwd()+"/app/tmp/"
@@ -109,5 +105,23 @@ async def upload_file(file: UploadFile = File(...)):
         cv.write(file.file.read())
     text = process(path)
     os.remove(path)
-    return {"filename": text}
+    try:
+        response = es.index(
+            index='cv_search',
+            doc_type='cv',
+            id=uuid.uuid4(),
+            body={
+                "info": text
+            }
+        )
+        responseDict = response
+
+    except ConnectionError:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error")
+
+    if responseDict:
+      return responseDict
+    else:
+      return []
 
