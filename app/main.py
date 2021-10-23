@@ -3,6 +3,12 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, ConnectionError
 from typing import Optional
 from typing import List
+# import sys
+import os
+# import docx
+# from docx2pdf import convert
+# import docx2txt
+from docx import Document
 
 import uuid
 import textract
@@ -32,6 +38,7 @@ extra = {
 app = FastAPI()
 es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 
+
 @app.get("/")
 async def test():
     # et la je genere des logs en fait non ?
@@ -39,7 +46,8 @@ async def test():
     test_logger.info('python-logstash: test logstash info message.')
     test_logger.warning('python-logstash: test logstash warning message.')
     test_logger.info('python-logstash: test extra fields', extra=extra)
-    return { "test": 1}
+    return {"test": 1}
+
 
 @app.post("/upload_pdf")
 async def upload_file(files: List[UploadFile] = File(...)):
@@ -89,3 +97,15 @@ def read_item(q: Optional[str] = None):
         return []
     except ConnectionError:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@app.post("/upload_word")
+async def upload_file(file: UploadFile = File(...)):
+    doc = file.filename
+    doc = doc[:-5]
+    tmp_path = os.getcwd()+"/app/tmp/"
+    path = tmp_path+doc+'.docx'
+    with open(path, "wb") as cv:
+            cv.write(file.file.read())
+    return {"filename": doc}
+
