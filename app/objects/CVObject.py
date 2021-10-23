@@ -15,12 +15,16 @@ class CVObject():
         # MINED DATA
         self.emailAdress = ""
         self.phoneNumber = ""
+        self.variousURL = ""
 
     def completeCV(self):
         if not self.emailAdress:
             self.extractMails()
         if not self.phoneNumber:
             self.extractPhoneNumbers()
+        if not self.variousURL:
+            self.extractVariousURL()
+
 
     def getBody(self):
         res = dict()
@@ -29,12 +33,19 @@ class CVObject():
         res["info"] = self.info
         res["emailAdress"] = self.emailAdress
         res["phoneNumber"] = self.phoneNumber
+        res["variousURL"] = self.variousURL
 
         return res
 
+    def extractVariousURL(self):
+        regexURL = r"(https?://[^\s]+)"
+        URLs = re.findall(regexURL, self.info)
+        if len(URLs) > 0:
+            self.variousURL = URLs
+
     def extractPhoneNumbers(self):
-        regexGeneralCase = r"\++\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-        regexSpecialCase = r"\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        regexGeneralCase = r"\++\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}[-.\s]?\d{1,9}[-.\s]?\d{1,9}"
+        regexSpecialCase = r"\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}[-.\s]?\d{1,9}[-.\s]?\d{1,9}"
         phonenumbers = re.findall(regexGeneralCase, self.info)
         if len(phonenumbers) > 0:
             self.phoneNumber = phonenumbers[0]
