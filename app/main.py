@@ -7,7 +7,7 @@ from typing import List
 import os
 # import docx
 # from docx2pdf import convert
-# import docx2txt
+from docx2txt import process
 from docx import Document
 
 import uuid
@@ -103,9 +103,11 @@ def read_item(q: Optional[str] = None):
 async def upload_file(file: UploadFile = File(...)):
     doc = file.filename
     doc = doc[:-5]
-    tmp_path = os.getcwd()+"/app/tmp/"
-    path = tmp_path+doc+'.docx'
+    file_path = os.getcwd()+"/app/tmp/"
+    path = file_path+doc+'.docx'
     with open(path, "wb") as cv:
-            cv.write(file.file.read())
-    return {"filename": doc}
+        cv.write(file.file.read())
+    text = process(path)
+    os.remove(path)
+    return {"filename": text}
 
