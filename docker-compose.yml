@@ -1,6 +1,6 @@
 version: "3.0"
 services:
-  api: 
+  api:
     container_name: api-container
     build: .
     ports:
@@ -43,10 +43,25 @@ services:
       - "discovery.type=single-node"
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    healthcheck:
+      test: curl --fail -s http://localhost:9200/ || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 3
     ports:
       - 9200:9200
     networks:
       - net
+
+  sampledata:
+    container_name: load-sample-cv
+    build:
+      context : .
+      dockerfile : SDS.Dockerfile
+    command: python sds.py
+    depends_on:
+      elasticsearch:
+         condition: service_healthy
 
 networks:
   net:

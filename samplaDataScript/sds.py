@@ -4,7 +4,7 @@ import os
 
 files = []
 
-for child in Path(os.getcwd()+'/data').iterdir():
+for child in Path('./data/').iterdir():
     if child.is_file():
         headers = {
             'accept': 'application/json',
@@ -19,12 +19,12 @@ for child in Path(os.getcwd()+'/data').iterdir():
 
     if len(files) > 100:
         response = r.post(
-                    'http://localhost/upload_cv', files=files)
+                    'http://host.docker.internal/upload_cv', files=files)
         print(response.text)
         del(files)
         files = []
-    print(files)
+    # print(files)
 
 response = r.post(
-            'http://localhost/upload_cv', files=files)
+            'http://host.docker.internal/upload_cv', files=files)
 print(response.text)
