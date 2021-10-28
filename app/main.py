@@ -12,12 +12,13 @@ import logstash
 import logging
 import time
 import os
+import pathlib
 
 # Logstash initialization
 host = 'logs-container'
 test_logger = logging.getLogger('python-logstash-logger')
 test_logger.setLevel(logging.INFO)
-test_logger.addHandler(logstash.LogstashHandler(host, 5959, version = 1))
+test_logger.addHandler(logstash.LogstashHandler(host, 5959, version=1))
 tmp_path = os.getcwd()+"/app/tmp/"
 
 app = FastAPI()
@@ -27,35 +28,47 @@ es = Elasticsearch([{'host': 'es-container', 'port': 9200}])
 @app.post("/upload_cv")
 async def upload_pdf_file(files: List[UploadFile] = File(...)):
     cv_list = []
-    
+    supportedExtension = ["docx", "pdf"]
+
     for file in files:
-        type_file = file.filename.split('.')[1]
-        path = tmp_path + str(int(time.time())) + "." + type_file
-        currentCV = CVObject()  
+        type_file = pathlib.Path(file.filename).suffix.replace('.', '')
+        if type_file in supportedExtension:
+            path = tmp_path + str(int(time.time())) + "." + type_file
+            currentCV = CVObject()
 
-        with open(path, "wb") as cv:
-            cv.write(file.file.read())
-            if type_file == 'pdf':
-                currentCV.initCvWithInfo(textract.process(path).decode("utf-8"))
-            if type_file == 'docx':
-                currentCV.initCvWithInfo(process(path))
-        os.remove(path)
+            with open(path, "wb") as cv:
+                cv.write(file.file.read())
+                if type_file == 'pdf':
+                    currentCV.initCvWithInfo(
+                        textract.process(path).decode("utf-8"))
+                if type_file == 'docx':
+                    currentCV.initCvWithInfo(process(path))
+            os.remove(path)
 
-        try:
-            response = es.index(
-                index=currentCV.index,
-                doc_type=currentCV.doc_type,
-                id=currentCV.id,
-                body=currentCV.getBody()
-            )
-            cv_list.append(response)
-            test_logger.info('CV uploaded successfully', extra = {"file_name": file.filename})
-            
-        except ConnectionError:
-            test_logger.error('Tried to reach "/upload", status : 500 - Internal Server Error')
-            raise HTTPException(status_code = 500, detail = "Internal Server Error")
+            try:
+                response = es.index(
+                    index=currentCV.index,
+                    doc_type=currentCV.doc_type,
+                    id=currentCV.id,
+                    body=currentCV.getBody()
+                )
+                cv_list.append(response)
+                test_logger.info('CV uploaded successfully', extra={
+                                 "file_name": file.filename})
 
-    return cv_list
+            except ConnectionError:
+                test_logger.error(
+                    'Tried to reach "/upload", status : 500 - Internal Server Error (Cant reach ES instance)')
+                raise HTTPException(
+                    status_code=500, detail="Internal Server Error")
+
+        else:
+            test_logger.error(
+                'Tried to reach "/upload", status : 415 - Unsupported Media Type')
+            raise HTTPException(
+                                status_code=415, detail="Unsupported Media Type : You're file extension ({}) is not supported".format(type_file))
+        return cv_list
+
 
 @app.get("/search_cv")
 def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
@@ -64,13 +77,16 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
     try:
         test_logger.info('Search executed : ' + str(q))
         if q:
-            logs = es.search(index = "cv_search", query = { "match": { "info": q}}, _source_excludes = srouceExcluseList)
+            logs = es.search(index="cv_search", query={
+                             "match": {"info": q}}, _source_excludes=srouceExcluseList)
         else:
-            logs = es.search(index = "cv_search", query = { "match_all": {}}, _source_excludes = srouceExcluseList)
+            logs = es.search(index="cv_search", query={
+                             "match_all": {}}, _source_excludes=srouceExcluseList)
         return logs['hits']['hits']
 
     except NotFoundError:
         return []
     except ConnectionError:
-        test_logger.error('Tried to reach "/search_cv", status : 500 - Internal Server Error')
+        test_logger.error(
+            'Tried to reach "/search_cv", status : 500 - Internal Server Error (Cant reach ES instance)')
         raise HTTPException(status_code=500, detail="Internal Server Error")
