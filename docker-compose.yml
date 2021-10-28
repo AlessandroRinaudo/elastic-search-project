@@ -2,7 +2,9 @@ version: "3.0"
 services:
   api:
     container_name: api-container
-    build: .
+    build:
+      context : .
+      dockerfile : app/API.Dockerfile
     ports:
       - 80:80
     networks:
@@ -57,7 +59,7 @@ services:
     container_name: load-sample-cv
     build:
       context : .
-      dockerfile : SDS.Dockerfile
+      dockerfile : samplaDataScript/SDS.Dockerfile
     command: python sds.py
     depends_on:
       elasticsearch:
