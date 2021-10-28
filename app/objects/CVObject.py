@@ -1,6 +1,7 @@
 import re
 import uuid
 
+
 class CVObject():
 
     def __init__(self):
@@ -28,7 +29,6 @@ class CVObject():
             self.extractPhoneNumbers()
         if not self.variousURL:
             self.extractVariousURL()
-
 
     def getBody(self):
         res = dict()
@@ -63,7 +63,8 @@ class CVObject():
                         break
 
     def extractMails(self):
-        emails = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", self.info)
+        emails = re.findall(
+            r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", self.info)
 
         if len(emails) == 1:
             self.emailAdress = emails[0]
