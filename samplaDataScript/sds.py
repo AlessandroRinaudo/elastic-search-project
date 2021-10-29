@@ -19,12 +19,12 @@ for child in Path('./data/').iterdir():
 
     if len(files) > 100:
         response = r.post(
-                    'http://host.docker.internal/upload_cv', files=files)
+                    'http://api-container/upload_cv', files=files)
         print(response.text)
         del(files)
         files = []
     # print(files)
 
 response = r.post(
-            'http://host.docker.internal/upload_cv', files=files)
+            'http://api-container/upload_cv', files=files)
 print(response.text)
