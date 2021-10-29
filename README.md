@@ -1,5 +1,9 @@
 # Project
 
+## Prerequisites
+
+docker-compose at leat in 2.0.0
+
 ## Installation/Run via Docker
 
 ```bash
