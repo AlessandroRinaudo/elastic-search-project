@@ -7,3 +7,4 @@ python-logstash
 python-docx
 docx2txt
 pytest
+requests
