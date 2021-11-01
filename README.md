@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-docker-compose at leat in 2.0.0
+docker-compose at least in 2.0.0
 
 ## Installation/Run via Docker
 
@@ -46,3 +46,10 @@ curl -X 'GET' \
   'http://localhost/search_cv?q=<QUERY>&contactInfoOnly=<BOOL>' \
   -H 'accept: application/json'
 ```
+
+## Tests
+To run tests, execute the following command :
+```sh 
+docker exec -it api-container  /bin/bash -c "cd app/tests && pytest"
+```
+
