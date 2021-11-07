@@ -5,6 +5,8 @@ services:
     build:
       context : .
       dockerfile : app/API.Dockerfile
+    environment:
+      - TEST="coucou"
     ports:
       - 80:80
     networks:
@@ -66,7 +68,7 @@ services:
         condition: service_healthy
     networks:
       - net
-      
+
 networks:
   net:
     driver: bridge
