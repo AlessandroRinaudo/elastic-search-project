@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from elasticsearch.exceptions import NotFoundError, ConnectionError
 from typing import Optional
 from app.connections import es, test_logger
+import app.routers.envLog as envLog
 
 router = APIRouter(
     tags=["search"]
@@ -25,6 +26,5 @@ def read_item(q: Optional[str] = None, contactInfoOnly: bool = False):
     except NotFoundError:
         return []
     except ConnectionError:
-        test_logger.error(
-            'Tried to reach "/search_cv", status : 500 - Internal Server Error (Cant reach ES instance)')
+        envLog.logFunction("error", 'Tried to reach "/search_cv", status : 500 - Internal Server Error (Cant reach ES instance)')
         raise HTTPException(status_code=500, detail="Internal Server Error")
