@@ -17,6 +17,10 @@ Or
 docker-compose  up --build
 ```
 
+## Env var
+If you want to set the project in prod mode you can switch the environment variable on True in docker-compose.yml.
+Env path : `services.api.environment.PRODENV`
+
 ## Usage
 To use this program, once the installation is done via Docker you have two solutions :
 
@@ -49,7 +53,6 @@ curl -X 'GET' \
 
 ## Tests
 To run tests, execute the following command :
-```sh 
+```sh
 docker exec -it api-container  /bin/bash -c "cd app/tests && pytest"
 ```
-
