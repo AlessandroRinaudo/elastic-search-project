@@ -2,8 +2,8 @@ import os
 from app.connections import test_logger
 
 
-def logFuntion(logtext):
-    if os.environ["prodenv"]:
-        test_logger.error(logtext)
+def logFunction(type, logtext, extralog = {}):
+    if os.environ["PRODENV"].lower() == "true":
+        getattr(test_logger, type)(logtext, extra=extralog)
     else:
-        print(logtext)
+        print("{0} : {1} {2}".format(type, logtext, extralog))

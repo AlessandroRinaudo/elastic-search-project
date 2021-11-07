@@ -6,7 +6,7 @@ services:
       context : .
       dockerfile : app/API.Dockerfile
     environment:
-      - TEST="coucou"
+      - PRODENV=False
     ports:
       - 80:80
     networks:

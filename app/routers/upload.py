@@ -7,7 +7,8 @@ import textract
 import time
 import os
 import pathlib
-from app.connections import es, test_logger
+from app.connections import es
+import app.routers.envLog as envLog
 
 router = APIRouter(
     tags=["upload"]
@@ -43,18 +44,15 @@ async def upload_pdf_file(files: List[UploadFile] = File(...)):
                     body=currentCV.getBody()
                 )
                 cv_list.append(response)
-                test_logger.info('CV uploaded successfully', extra={
-                                 "file_name": file.filename})
+                envLog.logFunction("info", 'CV uploaded successfully', {"file_name": file.filename})
 
             except ConnectionError:
-                test_logger.error(
-                    'Tried to reach "/upload", status : 500 - Internal Server Error (Cant reach ES instance)')
+                envLog.logFunction("error", 'Tried to reach "/upload", status : 500 - Internal Server Error (Cant reach ES instance)')
                 raise HTTPException(
                     status_code=500, detail="Internal Server Error")
 
         else:
-            test_logger.error(
-                'Tried to reach "/upload", status : 415 - Unsupported Media Type')
+            envLog.logFunction("error", 'Tried to reach "/upload", status : 415 - Unsupported Media Type')
             raise HTTPException(
                                 status_code=415, detail="Unsupported Media Type : You're file extension ({}) is not supported".format(type_file))
     return cv_list
