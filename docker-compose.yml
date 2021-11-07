@@ -6,7 +6,7 @@ services:
       context : .
       dockerfile : app/API.Dockerfile
     environment:
-      - PRODENV=False
+      - PRODENV=True
     ports:
       - 80:80
     networks:
