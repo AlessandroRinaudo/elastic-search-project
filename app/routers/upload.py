@@ -19,7 +19,7 @@ router = APIRouter(
 async def upload_pdf_file(files: List[UploadFile] = File(...)):
     cv_list = []
     supportedExtension = ["docx", "pdf"]
-    tmp_path = os.getcwd()+"/app/tmp/"
+    tmp_path = "/code/app/tmp/"
 
     for file in files:
         type_file = pathlib.Path(file.filename).suffix.replace('.', '')
